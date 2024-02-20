@@ -1,40 +1,27 @@
 package Utils;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
+import java.util.Arrays;
 
 public class DataSet {
+    // Full dataset
+    private double[][] X; // features
+    private int[] Y; // label
 
-    /**
-     * Input and output
-     */
-    protected double[][] X;
-    protected int[] Y;
+    // Training and test subsets
+    private double[][] XTrain;
+    private int[] YTrain;
+    private double[][] XTest;
+    private int[] YTest;
 
-    /**
-     * Column names
-     */
+    private static final String DELIMITER = ","; // used in CSV files
     protected String[] varNames;
 
-    /**
-     * Constructor
-     */
-    public DataSet() {
-    }
-
-    /**
-     * Counts number of register in the file
-     */
     private int countLines(String filename) throws IOException {
         try (InputStream is = new BufferedInputStream(new FileInputStream(filename))) {
             byte[] c = new byte[1024];
@@ -45,7 +32,7 @@ public class DataSet {
                 empty = false;
                 for (int i = 0; i < readChars; ++i) {
                     if (c[i] == '\n') {
-                        ++count;
+                        count++;
                     }
                 }
             }
@@ -64,8 +51,6 @@ public class DataSet {
     public void readDataSet(String fileName) {
         BufferedReader fileReader = null;
 
-        // Delimiter used in CSV file
-        final String DELIMITER = ",";
         try {
             // First, determine the number of lines in the file
             int linesNumber = countLines(fileName);
@@ -108,6 +93,7 @@ public class DataSet {
             e.printStackTrace();
         } finally {
             try {
+                assert fileReader != null;
                 fileReader.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -116,79 +102,57 @@ public class DataSet {
     }
 
     /**
-     * Write data with the predictions appended at the end to a csv file
+     * Normalize the data
      */
-    public void writeDataSetPred(String fileName, double[] predictedY) {
-        BufferedWriter fileWriter = null;
-
-        try {
-            File file = new File(fileName);
-            if (!file.exists())
-                file.createNewFile();
-
-            fileWriter = new BufferedWriter(new FileWriter(file));
-
-            DecimalFormat df = new DecimalFormat("##.###");
-            df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
-
-            for (String varName : varNames) {
-                fileWriter.write(varName);
-                fileWriter.write(",");
+    public void normalize() {
+        double[] varX = new double[X.length];
+        for (int i = 0; i < X[0].length; i++) {
+            for (int j = 0; j < X.length; j++) {
+                varX[j] = X[j][i];
             }
-            fileWriter.write("Predicted " + varNames[1]);
-            fileWriter.newLine();
-
-            for (int i = 0; i < X.length; i++) {
-                fileWriter.write(Integer.toString(i + 1));
-                fileWriter.write(",");
-                fileWriter.write(Integer.toString(Y[i]));
-                fileWriter.write(",");
-
-                // Skip first column as it is the bias
-                for (int j = 1; j < X[i].length; j++) {
-                    fileWriter.write(df.format(X[i][j]));
-                    fileWriter.write(",");
-                }
-                fileWriter.write(df.format(predictedY[i]));
-                fileWriter.newLine();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                fileWriter.flush();
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            double maxVal = Arrays.stream(varX).max().getAsDouble();
+            double minVal = Arrays.stream(varX).min().getAsDouble();
+            if (maxVal == minVal)
+                continue;
+            for (int j = 0; j < X.length; j++) {
+                X[j][i] = (X[j][i] - minVal) / (maxVal - minVal);
             }
         }
     }
 
     /**
-     * Print the input data set
+     * Split the data into training and test sets
      */
-    public void printDataSet() {
-        for (int i = 0; i < X.length; i++) {
-            System.out.print(Y[i] + "\t");
-            for (int j = 0; j < X[i].length; j++) {
-                System.out.print(X[i][j] + " ");
-            }
-            System.out.println();
-        }
+    public void splitData(double testSize) {
+        int n = X.length;
+        int testSizeInt = (int) (n * testSize);
+        XTest = Arrays.copyOfRange(X, 0, testSizeInt);
+        YTest = Arrays.copyOfRange(Y, 0, testSizeInt);
+        XTrain = Arrays.copyOfRange(X, testSizeInt, n);
+        YTrain = Arrays.copyOfRange(Y, testSizeInt, n);
     }
 
-    /**
-     * Convert predictor variables to a two-dimensional array
-     */
     public double[][] getX() {
         return X;
     }
 
-    /**
-     * Convert predicted variable to an array
-     */
     public int[] getY() {
         return Y;
     }
 
+    public double[][] getXTrain() {
+        return XTrain;
+    }
+
+    public int[] getYTrain() {
+        return YTrain;
+    }
+
+    public double[][] getXTest() {
+        return XTest;
+    }
+
+    public int[] getYTest() {
+        return YTest;
+    }
 }
