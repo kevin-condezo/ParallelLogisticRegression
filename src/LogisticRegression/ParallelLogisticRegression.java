@@ -67,7 +67,7 @@ public class ParallelLogisticRegression {
             for (int j = 0; j < this.numFeatures; j++)
                 weights[j] -= learningRate * gradient[j] / n;
 
-            if ((iter+1) % 5000 == 0)
+            if ((iter+1) % 100 == 0)
                 System.out.println("Iteration " + (iter+1) + ": gradient = " + Arrays.toString(gradient));
         }
         pool.shutdown();

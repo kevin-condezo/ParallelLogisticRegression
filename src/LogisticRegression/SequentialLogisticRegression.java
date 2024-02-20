@@ -51,7 +51,7 @@ public class SequentialLogisticRegression {
                 weights[j] -= learningRate * gradient[j] / X.length;
             }
 
-            if ((n+1) % 5000 == 0)
+            if ((n+1) % 100 == 0)
                 System.out.println("Iteration " + (n+1) + ": gradient = " + Arrays.toString(gradient));
         }
     }
