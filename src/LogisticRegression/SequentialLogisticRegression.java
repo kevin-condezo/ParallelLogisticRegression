@@ -32,11 +32,11 @@ public class SequentialLogisticRegression {
      */
     public void trainModelWithBGD(double[][] X, int[] Y) {
         weights = new double[numFeatures]; // filled with zeros
-        // Iterate until maxIterations or the STOP condition is met
+        // Iterate until maxIterations
         for (int n = 0; n < numIterations; n++) {
             double[] gradient = new double[numFeatures];
 
-            // Compute gradient for each feature
+            // Compute gradient for each observation in the dataset
             for (int i = 0; i < X.length; i++) {
                 double yPredicted = computePrediction(X[i]);
                 double error = yPredicted - Y[i];
@@ -99,7 +99,7 @@ public class SequentialLogisticRegression {
         df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
 
         System.out.println();
-        System.out.println("Performance report:");
+        System.out.println("Classification report:");
         System.out.println("TP= " + TP + " FP= " + FP + " TN= " + TN + " FN= " + FN);
         System.out.println("Precision= " + df.format(precision));
         System.out.println("Recall= " + df.format(recall));
@@ -108,9 +108,9 @@ public class SequentialLogisticRegression {
     }
 
     public void printModel() {
-        DecimalFormat df = new DecimalFormat("###.####");
+        DecimalFormat df = new DecimalFormat("###.########");
         df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
-        System.out.println("Sequential logistic regression weights:");
+        System.out.println("\nSequential logistic regression weights:");
         for (double weight : weights) {
             System.out.print(df.format(weight) + " ");
         }

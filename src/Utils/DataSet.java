@@ -132,6 +132,31 @@ public class DataSet {
         YTrain = Arrays.copyOfRange(Y, testSizeInt, n);
     }
 
+    public void printDataSetInfo() {
+        System.out.println("\nData set information:");
+        System.out.println("Number of observations: " + X.length);
+        System.out.println("Number of features: " + X[0].length);
+        System.out.println("Number of training observations: " + XTrain.length);
+        System.out.println("Number of test observations: " + XTest.length);
+        System.out.println();
+        System.out.println("First 5 rows of the dataset: ");
+        for (int i = 0; i < 5; i++) {
+            System.out.println(Arrays.toString(X[i]) + "\t\t" + Y[i]);
+        }
+    }
+
+    public void generateDataset(int nObservations, int nFeatures) {
+        X = new double[nObservations][nFeatures];
+        Y = new int[nObservations];
+        for (int i = 0; i < nObservations; i++) {
+            X[i][0] = 1.0;
+            for (int j = 1; j < nFeatures; j++) {
+                X[i][j] = Math.random();
+            }
+            Y[i] = Math.random() > 0.5 ? 1 : 0;
+        }
+    }
+
     public double[][] getX() {
         return X;
     }

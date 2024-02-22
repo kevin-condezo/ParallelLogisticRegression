@@ -33,24 +33,26 @@ public class ParallelLogisticRegression {
      */
     public void trainModelWithBGD(double[][] X, int[] Y) {
         weights = new double[numFeatures]; // filled with zeros
-        int n = X.length;
+        int n = X.length; // number of observations
 
-        // create thread pool
+        // create a thread pool
         int numWorkers = Runtime.getRuntime().availableProcessors();
         ExecutorService pool = Executors.newFixedThreadPool(numWorkers);
+
         int chunkSize = (int) Math.ceil((double) n / numWorkers);
 
-        // Iterate until maxIterations or the STOP condition is met
+        // Iterate until maxIterations
         for (int iter = 0; iter < numIterations; iter++) {
-            // submit tasks to calculate partial results
             Future<double[]>[] futures = new Future[numWorkers];
+
+            // partition the data and submit tasks to calculate partial results
             for (int w = 0; w < numWorkers; w++) {
                 int start = Math.min(w * chunkSize, n);
                 int end = Math.min((w + 1) * chunkSize, n);
                 futures[w] = pool.submit(new ParallelWorker(X, Y, start, end));
             }
 
-            // sum partial results
+            // accumulate partial results
             double[] gradient = new double[numFeatures];
             try {
                 for (int w = 0; w < numWorkers; w++) {
@@ -67,10 +69,10 @@ public class ParallelLogisticRegression {
             for (int j = 0; j < this.numFeatures; j++)
                 weights[j] -= learningRate * gradient[j] / n;
 
-            if ((iter+1) % 100 == 0)
-                System.out.println("Iteration " + (iter+1) + ": gradient = " + Arrays.toString(gradient));
+            if ((iter + 1) % 100 == 0)
+                System.out.println("Iteration " + (iter + 1) + ": gradient = " + Arrays.toString(gradient));
         }
-        pool.shutdown();
+        pool.shutdown(); // shut down the pool
     }
 
     /* worker calculates gradient for subset of rows in X */
@@ -89,7 +91,7 @@ public class ParallelLogisticRegression {
         public double[] call() {
             double[] partialGradient = new double[numFeatures];
 
-            // Compute gradient for each feature
+            // Compute gradient for each feature in the subset
             for (int i = start; i < end; i++) {
                 double yPredicted = computePrediction(X[i]);
                 double error = yPredicted - Y[i];
@@ -145,7 +147,7 @@ public class ParallelLogisticRegression {
         df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
 
         System.out.println();
-        System.out.println("Performance report:");
+        System.out.println("Classification report:");
         System.out.println("TP= " + TP + " FP= " + FP + " TN= " + TN + " FN= " + FN);
         System.out.println("Precision= " + df.format(precision));
         System.out.println("Recall= " + df.format(recall));
@@ -154,9 +156,9 @@ public class ParallelLogisticRegression {
     }
 
     public void printModel() {
-        DecimalFormat df = new DecimalFormat("###.####");
+        DecimalFormat df = new DecimalFormat("###.########");
         df.setDecimalFormatSymbols(new DecimalFormatSymbols(Locale.US));
-        System.out.println("Parallel logistic regression weights:");
+        System.out.println("\nParallel logistic regression weights:");
         for (double weight : weights) {
             System.out.print(df.format(weight) + " ");
         }
